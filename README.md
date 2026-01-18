@@ -138,11 +138,13 @@ For providers with a models API (OpenAI, Gemini), this fetches from the API and 
 
 ## Supported Providers
 
+Model list last updated: 01/18/2026.
+
 | Provider | Models | API Key Env Var |
 |----------|--------|-----------------|
-| OpenAI | dall-e-3, dall-e-2, gpt-image-1 | `OPENAI_API_KEY` |
-| Gemini | imagen-3.0-generate-002, imagen-3.0-generate-001 | `GEMINI_API_KEY` |
-| xAI | grok-2-image, grok-2-image-1212 | `XAI_API_KEY` |
+| OpenAI | `dall-e-3`, `dall-e-2`, `gpt-image-1`, `gpt-image-1.5`, `gpt-image-1-mini` | `OPENAI_API_KEY` |
+| Gemini | `imagen-3.0-generate-002`, `imagen-3.0-generate-001`, `gemini-2.0-flash-exp-image-generation`, `gemini-2.5-flash-image`, `gemini-3-pro-image-preview` | `GEMINI_API_KEY` |
+| xAI | `grok-2-image`, `grok-2-image-1212` | `XAI_API_KEY` |
 
 ## Error Handling
 
