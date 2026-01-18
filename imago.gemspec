@@ -5,8 +5,8 @@ require_relative 'lib/imago/version'
 Gem::Specification.new do |spec|
   spec.name = 'imago'
   spec.version = Imago::VERSION
-  spec.authors = ['Your Name']
-  spec.email = ['your.email@example.com']
+  spec.authors = ['NEETzsche']
+  spec.email = ['thestranjer@protonmail.com']
 
   spec.summary = 'A unified Ruby interface for multiple image generation AI providers'
   spec.description = 'Imago provides a simple, unified API to generate images using various AI providers ' \
