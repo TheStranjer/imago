@@ -1,0 +1,48 @@
+require:
+  - rubocop-rspec
+
+AllCops:
+  TargetRubyVersion: 3.0
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+
+Capybara:
+  Enabled: false
+
+Capybara/RSpec:
+  Enabled: false
+
+Capybara/RSpec/PredicateMatcher:
+  Enabled: false
+
+FactoryBot:
+  Enabled: false
+
+RSpecRails:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - '*.gemspec'
+
+RSpec/ExampleLength:
+  Max: 15
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/NestedGroups:
+  Max: 4
+
+Layout/LineLength:
+  Max: 120
+
+RSpec/MessageSpies:
+  EnforcedStyle: receive
