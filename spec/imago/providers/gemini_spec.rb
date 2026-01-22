@@ -260,4 +260,135 @@ RSpec.describe Imago::Providers::Gemini do
       end
     end
   end
+
+  describe 'image input support' do
+    let(:success_response) do
+      {
+        candidates: [
+          {
+            content: {
+              parts: [{ inlineData: { mimeType: 'image/png', data: 'outputdata' } }]
+            }
+          }
+        ]
+      }
+    end
+
+    let(:expected_endpoint) do
+      "https://generativelanguage.googleapis.com/v1beta/models/#{default_model}:generateContent"
+    end
+
+    before do
+      stub_request(:post, expected_endpoint)
+        .with(query: { 'key' => api_key })
+        .to_return(
+          status: 200,
+          body: success_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+    end
+
+    context 'with URL images' do
+      it 'includes fileData in parts' do
+        provider.generate('Edit this', images: ['https://example.com/photo.jpg'])
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts.length).to eq(2)
+            expect(parts[0]).to eq({ 'text' => 'Edit this' })
+            expect(parts[1]['fileData']['fileUri']).to eq('https://example.com/photo.jpg')
+            expect(parts[1]['fileData']['mimeType']).to eq('image/jpeg')
+          end
+      end
+
+      it 'handles URL without mime type' do
+        provider.generate('Edit', images: ['https://example.com/photo'])
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts[1]['fileData']['fileUri']).to eq('https://example.com/photo')
+            expect(parts[1]['fileData']).not_to have_key('mimeType')
+          end
+      end
+
+      it 'uses explicit mime type from hash' do
+        provider.generate('Edit', images: [{ url: 'https://example.com/photo', mime_type: 'image/webp' }])
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts[1]['fileData']['mimeType']).to eq('image/webp')
+          end
+      end
+    end
+
+    context 'with base64 images' do
+      it 'includes inlineData in parts' do
+        provider.generate('Edit this', images: [{ base64: 'iVBORw0KGgo...', mime_type: 'image/png' }])
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts.length).to eq(2)
+            expect(parts[1]['inlineData']['data']).to eq('iVBORw0KGgo...')
+            expect(parts[1]['inlineData']['mimeType']).to eq('image/png')
+          end
+      end
+    end
+
+    context 'with multiple images' do
+      it 'includes all images in parts' do
+        provider.generate('Combine', images: [
+                            'https://example.com/photo1.jpg',
+                            { base64: 'data123', mime_type: 'image/png' }
+                          ])
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts.length).to eq(3)
+            expect(parts[0]).to eq({ 'text' => 'Combine' })
+            expect(parts[1]['fileData']).to be_present
+            expect(parts[2]['inlineData']).to be_present
+          end
+      end
+    end
+
+    context 'with too many images' do
+      it 'raises InvalidRequestError when exceeding 10 images' do
+        images = (1..11).map { |i| "https://example.com/photo#{i}.jpg" }
+
+        expect do
+          provider.generate('Edit', images: images)
+        end.to raise_error(Imago::InvalidRequestError, /Too many images: 11 provided, maximum is 10/)
+      end
+
+      it 'allows exactly 10 images' do
+        images = (1..10).map { |i| "https://example.com/photo#{i}.jpg" }
+
+        expect { provider.generate('Edit', images: images) }.not_to raise_error
+      end
+    end
+
+    context 'without images' do
+      it 'sends only text part' do
+        provider.generate('Generate something')
+
+        expect(WebMock).to have_requested(:post, expected_endpoint)
+          .with(query: { 'key' => api_key }) do |req|
+            body = JSON.parse(req.body)
+            parts = body.dig('contents', 0, 'parts')
+            expect(parts.length).to eq(1)
+            expect(parts[0]).to eq({ 'text' => 'Generate something' })
+          end
+      end
+    end
+  end
 end

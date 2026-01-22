@@ -124,6 +124,45 @@ result[:images].each do |image|
 end
 ```
 
+### Image Input (Image-to-Image)
+
+Imago supports image inputs for image editing and image-to-image generation. You can provide images as URLs or base64-encoded data.
+
+```ruby
+# URL string (auto-detect mime type from extension)
+client = Imago.new(provider: :openai)
+result = client.generate("Make this colorful", images: ["https://example.com/photo.jpg"])
+
+# Base64 with explicit mime type
+result = client.generate("Add a hat", images: [
+  { base64: "iVBORw0KGgo...", mime_type: "image/png" }
+])
+
+# URL with explicit mime type (useful when URL has no extension)
+result = client.generate("Edit this", images: [
+  { url: "https://example.com/photo", mime_type: "image/jpeg" }
+])
+
+# Mixed inputs
+result = client.generate("Combine these", images: [
+  "https://example.com/photo1.jpg",
+  { base64: "iVBORw0KGgo...", mime_type: "image/jpeg" }
+])
+```
+
+#### Image Input Provider Support
+
+| Provider | Support | Limits |
+|----------|---------|--------|
+| OpenAI | Yes (gpt-image-*, dall-e-2) | 16 images max |
+| Gemini | Yes | 10 images max |
+| xAI | No | N/A |
+
+**Notes:**
+- DALL-E 3 does not support image inputs
+- Mime types are auto-detected from URL extensions (png, jpg, jpeg, webp, gif)
+- Base64 images require an explicit `mime_type`
+
 ### Listing Available Models
 
 ```ruby
@@ -167,6 +206,9 @@ rescue Imago::ConfigurationError => e
   puts "Configuration error: #{e.message}"
 rescue Imago::ProviderNotFoundError => e
   puts "Unknown provider: #{e.message}"
+rescue Imago::UnsupportedFeatureError => e
+  puts "Feature not supported: #{e.message}"
+  puts "Provider: #{e.provider}, Feature: #{e.feature}"
 end
 ```
 

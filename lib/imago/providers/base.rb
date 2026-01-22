@@ -77,6 +77,21 @@ module Imago
         else "API error: #{response.body}"
         end
       end
+
+      def normalize_images(images)
+        return [] if images.nil? || images.empty?
+
+        images.map { |img| ImageInput.from(img) }
+      end
+
+      def validate_image_count!(images, max:)
+        return if images.nil? || images.length <= max
+
+        raise InvalidRequestError.new(
+          "Too many images: #{images.length} provided, maximum is #{max}",
+          status_code: 400
+        )
+      end
     end
   end
 end

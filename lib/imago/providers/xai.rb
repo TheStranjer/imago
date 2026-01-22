@@ -11,6 +11,8 @@ module Imago
       ].freeze
 
       def generate(prompt, opts = {})
+        raise_if_images_provided(opts)
+
         conn = connection(BASE_URL)
         response = conn.post('images/generations') do |req|
           req.headers['Authorization'] = "Bearer #{api_key}"
@@ -57,6 +59,17 @@ module Imago
           images: images || [],
           created: body['created']
         }
+      end
+
+      def raise_if_images_provided(opts)
+        return unless opts[:images] && !opts[:images].empty?
+
+        raise UnsupportedFeatureError.new(
+          'xAI does not currently support image inputs. ' \
+          'Image-to-image generation may be available in future API versions.',
+          provider: :xai,
+          feature: :image_input
+        )
       end
     end
   end

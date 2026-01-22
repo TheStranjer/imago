@@ -5,6 +5,7 @@ require 'json'
 
 require_relative 'imago/version'
 require_relative 'imago/errors'
+require_relative 'imago/image_input'
 require_relative 'imago/providers/base'
 require_relative 'imago/providers/openai'
 require_relative 'imago/providers/gemini'

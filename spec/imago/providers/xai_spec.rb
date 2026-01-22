@@ -146,4 +146,48 @@ RSpec.describe Imago::Providers::XAI do
       expect(WebMock).not_to have_requested(:get, /api.x.ai/)
     end
   end
+
+  describe 'image input support' do
+    it 'raises UnsupportedFeatureError when images are provided' do
+      expect do
+        provider.generate('Edit this', images: ['https://example.com/photo.jpg'])
+      end.to raise_error(Imago::UnsupportedFeatureError)
+    end
+
+    it 'includes provider and feature in the error' do
+      provider.generate('Edit this', images: ['https://example.com/photo.jpg'])
+    rescue Imago::UnsupportedFeatureError => e
+      expect(e.provider).to eq(:xai)
+      expect(e.feature).to eq(:image_input)
+      expect(e.message).to include('xAI does not currently support image inputs')
+    end
+
+    it 'raises UnsupportedFeatureError with base64 images' do
+      expect do
+        provider.generate('Edit this', images: [{ base64: 'data', mime_type: 'image/png' }])
+      end.to raise_error(Imago::UnsupportedFeatureError)
+    end
+
+    it 'does not raise error with empty images array' do
+      stub_request(:post, 'https://api.x.ai/v1/images/generations')
+        .to_return(
+          status: 200,
+          body: { created: 123, data: [{ url: 'https://example.com/img.png' }] }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { provider.generate('A robot', images: []) }.not_to raise_error
+    end
+
+    it 'does not raise error without images option' do
+      stub_request(:post, 'https://api.x.ai/v1/images/generations')
+        .to_return(
+          status: 200,
+          body: { created: 123, data: [{ url: 'https://example.com/img.png' }] }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { provider.generate('A robot') }.not_to raise_error
+    end
+  end
 end

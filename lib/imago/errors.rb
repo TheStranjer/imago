@@ -22,4 +22,14 @@ module Imago
   class InvalidRequestError < ApiError; end
 
   class ProviderNotFoundError < Error; end
+
+  class UnsupportedFeatureError < Error
+    attr_reader :provider, :feature
+
+    def initialize(message, provider: nil, feature: nil)
+      @provider = provider
+      @feature = feature
+      super(message)
+    end
+  end
 end

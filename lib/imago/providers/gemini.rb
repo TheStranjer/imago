@@ -4,6 +4,7 @@ module Imago
   module Providers
     class Gemini < Base
       BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
+      MAX_IMAGES = 10
 
       KNOWN_IMAGE_MODELS = %w[
         imagen-3.0-generate-002
@@ -14,6 +15,7 @@ module Imago
       ].freeze
 
       def generate(prompt, opts = {})
+        validate_image_count!(opts[:images], max: MAX_IMAGES)
         conn = connection(BASE_URL)
         endpoint = "models/#{model}:generateContent"
 
@@ -42,9 +44,24 @@ module Imago
       private
 
       def build_request_body(prompt, opts)
-        body = { contents: [{ parts: [{ text: build_prompt(prompt, opts) }] }] }
+        body = { contents: [{ parts: build_parts(prompt, opts) }] }
         body[:generationConfig] = build_generation_config(opts) if generation_config_present?(opts)
         body
+      end
+
+      def build_parts(prompt, opts)
+        parts = [{ text: build_prompt(prompt, opts) }]
+        images = normalize_images(opts[:images])
+        images.each { |img| parts << build_image_part(img) }
+        parts
+      end
+
+      def build_image_part(image)
+        if image.url?
+          { fileData: { fileUri: image.url, mimeType: image.mime_type }.compact }
+        else
+          { inlineData: { data: image.base64, mimeType: image.mime_type } }
+        end
       end
 
       def build_prompt(prompt, opts)

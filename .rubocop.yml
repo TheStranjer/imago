@@ -44,5 +44,9 @@ RSpec/NestedGroups:
 Layout/LineLength:
   Max: 120
 
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/imago/providers/openai.rb'
+
 RSpec/MessageSpies:
   EnforcedStyle: receive
