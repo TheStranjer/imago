@@ -31,16 +31,21 @@ module Imago
     def self.from_hash(hash)
       hash = hash.transform_keys(&:to_sym)
 
-      if hash[:base64]
-        raise ArgumentError, 'mime_type is required for base64 images' unless hash[:mime_type]
+      return from_base64_hash(hash) if hash[:base64]
+      return from_url_hash(hash) if hash[:url]
 
-        new(base64: hash[:base64], mime_type: hash[:mime_type])
-      elsif hash[:url]
-        mime_type = hash[:mime_type] || detect_mime_type(hash[:url])
-        new(url: hash[:url], mime_type: mime_type)
-      else
-        raise ArgumentError, 'Image hash must contain either :url or :base64 key'
-      end
+      raise ArgumentError, 'Image hash must contain either :url or :base64 key'
+    end
+
+    def self.from_base64_hash(hash)
+      raise ArgumentError, 'mime_type is required for base64 images' unless hash[:mime_type]
+
+      new(base64: hash[:base64], mime_type: hash[:mime_type])
+    end
+
+    def self.from_url_hash(hash)
+      mime_type = hash[:mime_type] || detect_mime_type(hash[:url])
+      new(url: hash[:url], mime_type: mime_type)
     end
 
     def self.detect_mime_type(url)
@@ -50,7 +55,7 @@ module Imago
       nil
     end
 
-    private_class_method :from_url_string, :from_hash, :detect_mime_type
+    private_class_method :from_url_string, :from_hash, :from_base64_hash, :from_url_hash, :detect_mime_type
 
     def initialize(url: nil, base64: nil, mime_type: nil)
       @url = url

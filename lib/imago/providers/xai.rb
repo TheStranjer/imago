@@ -12,13 +12,7 @@ module Imago
 
       def generate(prompt, opts = {})
         raise_if_images_provided(opts)
-
-        conn = connection(BASE_URL)
-        response = conn.post('images/generations') do |req|
-          req.headers['Authorization'] = "Bearer #{api_key}"
-          req.body = build_request_body(prompt, opts)
-        end
-
+        response = execute_generate_request(prompt, opts)
         parse_generate_response(handle_response(response))
       end
 
@@ -38,6 +32,21 @@ module Imago
 
       private
 
+      def execute_generate_request(prompt, opts)
+        conn = connection(BASE_URL)
+        body = build_request_body(prompt, opts)
+        conn.post('images/generations') { |req| configure_request(req, body) }
+      end
+
+      def configure_request(req, body)
+        req.headers['Authorization'] = auth_header
+        req.body = body
+      end
+
+      def auth_header
+        "Bearer #{api_key}"
+      end
+
       def build_request_body(prompt, opts)
         {
           model: model,
@@ -48,17 +57,8 @@ module Imago
       end
 
       def parse_generate_response(body)
-        images = body['data']&.map do |img|
-          {
-            url: img['url'],
-            base64: img['b64_json']
-          }.compact
-        end
-
-        {
-          images: images || [],
-          created: body['created']
-        }
+        images = body['data']&.map { |img| { url: img['url'], base64: img['b64_json'] }.compact }
+        { images: images || [], created: body['created'] }
       end
 
       def raise_if_images_provided(opts)

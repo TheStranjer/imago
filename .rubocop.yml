@@ -45,8 +45,21 @@ Layout/LineLength:
   Max: 120
 
 Metrics/ClassLength:
+  Max: 100
+
+Metrics/MethodLength:
+  Max: 25
+
+Metrics/AbcSize:
+  Max: 10
   Exclude:
-    - 'lib/imago/providers/openai.rb'
+    - 'spec/**/*'
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+
+Metrics/PerceivedComplexity:
+  Max: 10
 
 RSpec/MessageSpies:
   EnforcedStyle: receive
