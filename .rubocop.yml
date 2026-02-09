@@ -63,3 +63,7 @@ Metrics/PerceivedComplexity:
 
 RSpec/MessageSpies:
   EnforcedStyle: receive
+
+Style/GuardClause:
+  Enabled: true
+
