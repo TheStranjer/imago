@@ -107,8 +107,11 @@ RSpec.describe Imago::Providers::Gemini do
       provider.generate('A sunset', aspect_ratio: '16:9')
 
       expect(WebMock).to have_requested(:post, expected_endpoint)
-        .with(query: { 'key' => api_key },
-              body: hash_including('generationConfig' => hash_including('aspectRatio' => '16:9')))
+        .with(query: { 'key' => api_key }) do |req|
+          body = JSON.parse(req.body)
+          image_config = body.dig('generationConfig', 'imageConfig')
+          expect(image_config).to eq({ 'aspectRatio' => '16:9' })
+        end
     end
 
     it 'supports negative prompt option by appending to prompt' do

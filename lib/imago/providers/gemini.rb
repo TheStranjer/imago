@@ -88,7 +88,17 @@ module Imago
       end
 
       def build_generation_config(opts)
-        { candidateCount: opts[:sample_count] || opts[:n], seed: opts[:seed], aspectRatio: opts[:aspect_ratio] }.compact
+        config = { candidateCount: opts[:sample_count] || opts[:n], seed: opts[:seed] }.compact
+        config[:imageConfig] = build_image_config(opts) if image_config_present?(opts)
+        config
+      end
+
+      def image_config_present?(opts)
+        opts[:aspect_ratio]
+      end
+
+      def build_image_config(opts)
+        { aspectRatio: opts[:aspect_ratio] }.compact
       end
 
       def fetch_models
